@@ -1,269 +1,67 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ArrowRight,
-  BarChart3,
-  BriefcaseBusiness,
   Building2,
-  Check,
   ClipboardCheck,
   Database,
   FileSearch,
   FileText,
   Gauge,
   Globe2,
-  Layers3,
   LineChart,
   MessageSquareText,
   RefreshCw,
-  Search,
   ShieldCheck,
   Sparkles,
   Target,
-  Users,
 } from 'lucide-react';
 
+const defaultTopic = 'AI market research tools for boutique consultants';
 const audienceOptions = ['Founder', 'Consultant', 'Product marketer', 'Investor', 'Sales leader'];
 const geographyOptions = ['United States', 'India', 'Europe', 'Global', 'APAC'];
 
 const sourceAdapters = [
   {
-    name: 'Company web',
-    type: 'Primary evidence',
-    authority: 88,
-    coverage: 'Positioning, pricing hints, proof points, customer logos, implementation depth',
-  },
-  {
-    name: 'News and press',
+    name: 'GDELT news index',
     type: 'Momentum signal',
-    authority: 74,
-    coverage: 'Funding, launches, partnerships, regulation, executive commentary',
+    coverage: 'Recent coverage, funding, launches, partnerships, and market activity',
   },
   {
-    name: 'Filings and investor material',
-    type: 'Financial evidence',
-    authority: 92,
-    coverage: 'Risk factors, segment priorities, market exposure, revenue language',
+    name: 'OpenAlex research graph',
+    type: 'Research validation',
+    coverage: 'Academic and technical records that help test maturity and adoption barriers',
   },
   {
-    name: 'Jobs and hiring',
-    type: 'Demand proxy',
-    authority: 68,
-    coverage: 'Budget formation, expansion signals, GTM hiring, skill demand',
+    name: 'Wikipedia category search',
+    type: 'Market boundary',
+    coverage: 'Reference records for terminology, adjacent categories, and baseline context',
   },
   {
-    name: 'Research graph',
-    type: 'External validation',
-    authority: 82,
-    coverage: 'Technology maturity, adoption barriers, research velocity',
-  },
-  {
-    name: 'Buyer voice',
-    type: 'Friction signal',
-    authority: 64,
-    coverage: 'Unmet needs, switching triggers, complaints, substitute behavior',
+    name: 'Public discussions',
+    type: 'Buyer language',
+    coverage: 'Community signals that may surface workflow friction and substitute behavior',
   },
 ];
 
 const researchDepth = [
-  { label: 'Market boundary', value: 'Defined before sizing', icon: Globe2 },
-  { label: 'Demand quality', value: 'Triangulated signals', icon: LineChart },
-  { label: 'Competitor map', value: 'Direct + substitutes', icon: Building2 },
-  { label: 'Confidence', value: 'Claim-level scoring', icon: ClipboardCheck },
+  { label: 'Backend agent', value: 'Live endpoint', icon: Database },
+  { label: 'Public sources', value: 'No-key adapters', icon: Globe2 },
+  { label: 'Evidence ledger', value: 'Claim-level basis', icon: ShieldCheck },
+  { label: 'Confidence', value: 'Scored output', icon: ClipboardCheck },
 ];
 
-function cleanTopic(topic) {
-  return topic.trim().replace(/\s+/g, ' ') || 'AI market research tools for boutique consultants';
-}
-
-function detectSegment(topic) {
-  const lower = topic.toLowerCase();
-  const checks = [
-    {
-      match: ['health', 'clinic', 'doctor', 'dental', 'patient', 'hospital'],
-      segment: 'Healthcare operations technology',
-      competitors: ['Abridge', 'Nabla', 'Suki AI', 'Freed', 'Tebra'],
-      headline: 'Demand is strongest where documentation burden, staff shortages, and compliance risk overlap.',
-      angle: 'The attractive wedge is likely a specialty workflow where generic AI tools lack clinical context and auditability.',
-      caution: 'Regulatory exposure can make broad claims fragile. Strategy-grade work should verify compliance language and workflow ownership.',
-      signal: 78,
-    },
-    {
-      match: ['fintech', 'finance', 'bank', 'payment', 'lending', 'wealth'],
-      segment: 'Financial services technology',
-      competitors: ['Plaid', 'Stripe', 'Adyen', 'Modern Treasury', 'Unit'],
-      headline: 'Demand quality improves when the product reduces integration friction, audit burden, or operational risk.',
-      angle: 'The strongest wedge is a narrow regulated workflow where trust and reliability matter more than feature breadth.',
-      caution: 'Distribution dependencies and compliance constraints can shrink the reachable market if they are under-modeled.',
-      signal: 74,
-    },
-    {
-      match: ['ai', 'automation', 'copilot', 'agent', 'llm'],
-      segment: 'AI-enabled workflow software',
-      competitors: ['Perplexity Enterprise', 'Glean', 'Hebbia', 'Harvey', 'Dust'],
-      headline: 'Interest is high, but durable demand depends on repeatable workflow value rather than launch novelty.',
-      angle: 'The most defensible wedge is likely role-specific intelligence with proprietary context, source traceability, and workflow memory.',
-      caution: 'AI markets are crowded with similar positioning. Pricing evidence, retention proxies, and credible customer proof matter more than announcement volume.',
-      signal: 84,
-    },
-    {
-      match: ['saas', 'b2b', 'enterprise', 'sales', 'marketing', 'crm'],
-      segment: 'B2B software and services',
-      competitors: ['HubSpot', 'Salesforce', 'Gong', '6sense', 'Clari'],
-      headline: 'Budget exists when the category maps directly to revenue growth, cost reduction, or risk control.',
-      angle: 'A focused buyer workflow should come before a broad platform narrative.',
-      caution: 'Incumbent suites and internal workflows are real substitutes. Differentiation must be proven at the use-case level.',
-      signal: 76,
-    },
-  ];
-
-  return checks.find((item) => item.match.some((term) => lower.includes(term))) || {
-    segment: 'Emerging business category',
-    competitors: ['Incumbent suites', 'Vertical specialists', 'Agency substitutes', 'Open-source tooling', 'Internal teams'],
-    headline: 'The category is not yet specific enough for high-confidence sizing; the first useful step is market boundary discipline.',
-    angle: 'Narrow the category around a buyer, a painful workflow, and the substitute currently absorbing the budget.',
-    caution: 'Broad category labels can create false confidence. Multiple independent source types should corroborate the market before strategy decisions.',
-    signal: 68,
-  };
-}
-
-function audienceRead(audience) {
-  const reads = {
-    Founder: 'founders deciding whether the opportunity deserves deeper validation',
-    Consultant: 'consultants producing client-ready intelligence with traceable evidence',
-    'Product marketer': 'marketing teams turning competitor signals into positioning and battlecards',
-    Investor: 'investors screening momentum, defensibility, and downside risk',
-    'Sales leader': 'sales teams entering a new vertical or competitive motion',
-  };
-
-  return reads[audience] || reads.Founder;
-}
-
-function sourceRoute(label, topic, geography) {
-  const query = encodeURIComponent(`${topic} ${label} ${geography}`);
-  const routes = {
-    'Company proof': `https://www.google.com/search?q=${query}+pricing+customers+case+study`,
-    'Market momentum': `https://news.google.com/search?q=${query}+funding+launch+partnership`,
-    'Public disclosures': 'https://www.sec.gov/search-filings',
-    'Hiring signal': `https://www.google.com/search?q=${query}+jobs+hiring+go-to-market`,
-    'Research validation': `https://openalex.org/works?search=${encodeURIComponent(topic)}`,
-    'Buyer friction': `https://www.google.com/search?q=${query}+reviews+complaints+alternatives`,
-  };
-
-  return routes[label];
-}
-
-function buildEvidence(topic, geography, segment, audience) {
-  const today = new Date().toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-
-  return [
-    {
-      id: 'E01',
-      label: 'Company proof',
-      claim: `Frame the topic as ${segment.segment} before attempting market sizing.`,
-      basis: 'The category should be bounded through product language, customer proof, and adjacent substitute analysis.',
-      confidence: 86,
-      route: sourceRoute('Company proof', topic, geography),
-      checkedAt: today,
-    },
-    {
-      id: 'E02',
-      label: 'Market momentum',
-      claim: segment.headline,
-      basis: 'Momentum should be confirmed through funding, partnerships, launch cadence, and customer adoption signals.',
-      confidence: segment.signal,
-      route: sourceRoute('Market momentum', topic, geography),
-      checkedAt: today,
-    },
-    {
-      id: 'E03',
-      label: 'Public disclosures',
-      claim: 'Public-company disclosures are useful only when the topic touches listed companies or their strategic segments.',
-      basis: 'Filings can validate risk language, executive priorities, and exposure to an adjacent category.',
-      confidence: 79,
-      route: sourceRoute('Public disclosures', topic, geography),
-      checkedAt: today,
-    },
-    {
-      id: 'E04',
-      label: 'Hiring signal',
-      claim: 'Hiring patterns are a useful proxy for where teams are placing budget and operational focus.',
-      basis: 'Role frequency, seniority, and functional mix help distinguish curiosity from organized investment.',
-      confidence: 72,
-      route: sourceRoute('Hiring signal', topic, geography),
-      checkedAt: today,
-    },
-    {
-      id: 'E05',
-      label: 'Buyer friction',
-      claim: segment.angle,
-      basis: 'Whitespace should be derived from complaints, alternatives, switching friction, and workflow ownership.',
-      confidence: 74,
-      route: sourceRoute('Buyer friction', topic, geography),
-      checkedAt: today,
-    },
-  ].map((item) => ({
-    ...item,
-    confidenceLabel: item.confidence >= 82 ? 'High' : item.confidence >= 73 ? 'Medium-high' : 'Medium',
-    audienceFit: audienceRead(audience),
-  }));
-}
-
-function buildSnapshot(topic, geography, audience) {
-  const normalized = cleanTopic(topic);
-  const segment = detectSegment(normalized);
-  const evidence = buildEvidence(normalized, geography, segment, audience);
-  const confidence = Math.round(evidence.reduce((total, item) => total + item.confidence, 0) / evidence.length);
-
-  return {
-    topic: normalized,
-    geography,
-    audience,
-    segment: segment.segment,
-    competitors: segment.competitors,
-    generatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    confidence,
-    confidenceLabel: confidence >= 82 ? 'High confidence' : confidence >= 74 ? 'Medium-high confidence' : 'Medium confidence',
-    executiveRead: [
-      {
-        title: 'Category read',
-        text: `${normalized} is best assessed as ${segment.segment} in ${geography}, not as a broad keyword market.`,
-      },
-      {
-        title: 'Demand quality',
-        text: segment.headline,
-      },
-      {
-        title: 'Strategic angle',
-        text: segment.angle,
-      },
-    ],
-    whatWeKnow: [
-      `The first useful buyer lens is ${audienceRead(audience)}.`,
-      'The market should be segmented by workflow pain, budget owner, substitute behavior, and proof of repeat usage.',
-      'Competitor analysis should include direct vendors, adjacent suites, agencies, open-source alternatives, and internal teams.',
-    ],
-    toVerify: [
-      'Which competitors show credible customer proof rather than generic category language?',
-      'Are buyers actively budgeting for this workflow, or only experimenting with it?',
-      'Which pain point has the highest urgency, frequency, and willingness to pay?',
-      'What evidence contradicts the initial attractiveness of the category?',
-    ],
-    caution: segment.caution,
-    evidence,
-  };
-}
-
 function App() {
-  const [topic, setTopic] = useState('AI market research tools for boutique consultants');
+  const [topic, setTopic] = useState(defaultTopic);
   const [geography, setGeography] = useState('United States');
   const [audience, setAudience] = useState('Founder');
-  const [snapshot, setSnapshot] = useState(() => buildSnapshot(topic, geography, audience));
+  const [snapshot, setSnapshot] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [hasDraftChanges, setHasDraftChanges] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    requestSnapshot({ topic: defaultTopic, geography: 'United States', audience: 'Founder' });
+  }, []);
 
   const updateTopic = (value) => {
     setTopic(value);
@@ -280,15 +78,35 @@ function App() {
     setHasDraftChanges(true);
   };
 
-  const refreshSnapshot = () => {
-    if (topic.trim().length < 3 || isGenerating) return;
+  const requestSnapshot = async (input = { topic, geography, audience }) => {
+    if (input.topic.trim().length < 3 || isGenerating) return;
     setIsGenerating(true);
+    setError('');
 
-    window.setTimeout(() => {
-      setSnapshot(buildSnapshot(topic, geography, audience));
+    try {
+      const response = await fetch('/api/market-snapshot', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          topic: input.topic,
+          geography: input.geography,
+          audience: input.audience,
+          depth: 'snapshot',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('The intelligence agent could not return a snapshot.');
+      }
+
+      const report = await response.json();
+      setSnapshot(report);
       setHasDraftChanges(false);
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
       setIsGenerating(false);
-    }, 900);
+    }
   };
 
   return (
@@ -308,11 +126,11 @@ function App() {
 
       <section className="hero-grid" id="top">
         <div className="hero-copy">
-          <p className="eyebrow">Market intelligence workspace</p>
+          <p className="eyebrow">Market intelligence agent</p>
           <h1>Market snapshots that show their work.</h1>
           <p>
-            MarketPulse turns a research question into a structured brief with source routes,
-            confidence scoring, competitor candidates, and clear uncertainties.
+            MarketPulse now sends each research question to a backend agent that gathers
+            public-source signals, scores evidence, and returns an analyst-ready brief.
           </p>
         </div>
 
@@ -325,11 +143,12 @@ function App() {
             <Select label="Geography" value={geography} options={geographyOptions} onChange={updateGeography} />
             <Select label="Audience" value={audience} options={audienceOptions} onChange={updateAudience} />
           </div>
-          <button className="primary-action" onClick={refreshSnapshot} disabled={topic.trim().length < 3 || isGenerating} type="button">
+          <button className="primary-action" onClick={() => requestSnapshot()} disabled={topic.trim().length < 3 || isGenerating} type="button">
             {isGenerating ? <RefreshCw className="spin" size={18} /> : <Sparkles size={18} />}
-            {isGenerating ? 'Refreshing snapshot' : hasDraftChanges ? 'Refresh snapshot' : 'Run snapshot again'}
+            {isGenerating ? 'Agent is researching' : hasDraftChanges ? 'Create new snapshot' : 'Run agent again'}
           </button>
-          <small>{hasDraftChanges ? 'Inputs changed. Refresh to update the brief.' : 'Snapshot is current for the selected inputs.'}</small>
+          <small>{hasDraftChanges ? 'Inputs changed. Run the agent to refresh the brief.' : 'The visible brief is generated by the backend agent.'}</small>
+          {error && <p className="error-note">{error}</p>}
         </section>
       </section>
 
@@ -350,11 +169,11 @@ function App() {
 
       <section className="method-section" id="method">
         <div>
-          <p className="eyebrow">Research method</p>
-          <h2>Confidence is earned claim by claim.</h2>
+          <p className="eyebrow">Agent method</p>
+          <h2>The backend separates source evidence from analyst synthesis.</h2>
           <p>
-            The report separates market facts, source-backed signals, and analyst hypotheses.
-            Each claim is scored for authority, specificity, recency, corroboration, and contradiction risk.
+            The v1 agent queries public no-key source adapters, extracts source records,
+            scores each claim, and returns the agreed JSON contract for the page to render.
           </p>
         </div>
         <div className="adapter-grid">
@@ -364,7 +183,6 @@ function App() {
               <strong>{adapter.name}</strong>
               <span>{adapter.type}</span>
               <p>{adapter.coverage}</p>
-              <b>{adapter.authority}% authority baseline</b>
             </article>
           ))}
         </div>
@@ -375,7 +193,7 @@ function App() {
           <p className="eyebrow">Analyst review</p>
           <h2>When the decision matters, add a human layer.</h2>
           <p>
-            Use the engine for structured discovery, then bring in expert review for market-entry choices,
+            Use the agent for structured discovery, then bring in expert review for market-entry choices,
             investor narratives, board-ready memos, and strategy recommendations.
           </p>
         </div>
@@ -389,25 +207,55 @@ function App() {
 }
 
 function SnapshotReport({ snapshot, isGenerating }) {
+  if (!snapshot) {
+    return (
+      <section className="snapshot-shell is-loading" id="snapshot" aria-label="Market snapshot">
+        <div className="loading-state">
+          <RefreshCw className="spin" size={28} />
+          <p className="eyebrow">Backend agent</p>
+          <h2>Building the first evidence-backed snapshot.</h2>
+          <p>The agent is gathering public signals and preparing the evidence ledger.</p>
+        </div>
+      </section>
+    );
+  }
+
+  const evidence = snapshot.evidence_ledger || [];
+  const competitors = snapshot.competitors || [];
+  const generatedAt = new Date(snapshot.generated_at).toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
   return (
     <section className={`snapshot-shell ${isGenerating ? 'is-loading' : ''}`} id="snapshot" aria-label="Market snapshot">
       <div className="report-header">
         <div>
           <p className="eyebrow">Market snapshot</p>
           <h2>{snapshot.topic}</h2>
-          <span>{snapshot.segment} · {snapshot.geography} · {snapshot.generatedAt}</span>
+          <span>{snapshot.market_category} · {snapshot.geography} · {generatedAt}</span>
         </div>
         <div className="confidence-mark">
-          <strong>{snapshot.confidence}%</strong>
-          <span>{snapshot.confidenceLabel}</span>
+          <strong>{snapshot.overall_confidence.score}%</strong>
+          <span>{snapshot.overall_confidence.label} confidence</span>
         </div>
       </div>
 
+      <div className="confidence-reason">
+        <Gauge size={18} />
+        <p>
+          {snapshot.overall_confidence.reason}
+          {' '}
+          The agent found {snapshot.source_summary.records_found} public records across {snapshot.source_summary.adapters_queried} adapters.
+        </p>
+      </div>
+
       <div className="executive-grid">
-        {snapshot.executiveRead.map((item) => (
+        {snapshot.executive_snapshot.map((item) => (
           <article key={item.title}>
             <span>{item.title}</span>
-            <p>{item.text}</p>
+            <p>{item.insight}</p>
+            <small>{item.confidence} · {item.supporting_evidence_ids.join(', ') || 'No direct evidence id'}</small>
           </article>
         ))}
       </div>
@@ -416,20 +264,30 @@ function SnapshotReport({ snapshot, isGenerating }) {
         <section className="brief-panel">
           <div className="section-title">
             <Target size={18} />
-            <h3>What the snapshot supports</h3>
+            <h3>Buyer pain points</h3>
           </div>
           <ul className="clean-list">
-            {snapshot.whatWeKnow.map((item) => <li key={item}>{item}</li>)}
+            {snapshot.buyer_pain_points.map((item) => (
+              <li key={item.pain}>
+                <strong>{item.pain}</strong>
+                <span>{item.evidence}</span>
+              </li>
+            ))}
           </ul>
         </section>
 
         <section className="brief-panel">
           <div className="section-title">
             <FileSearch size={18} />
-            <h3>What to verify next</h3>
+            <h3>Risks and uncertainties</h3>
           </div>
           <ul className="clean-list">
-            {snapshot.toVerify.map((item) => <li key={item}>{item}</li>)}
+            {snapshot.risks_and_uncertainties.map((item) => (
+              <li key={item.risk}>
+                <strong>{item.risk}</strong>
+                <span>{item.what_to_verify_next}</span>
+              </li>
+            ))}
           </ul>
         </section>
       </div>
@@ -440,11 +298,11 @@ function SnapshotReport({ snapshot, isGenerating }) {
           <h3>Competitor starting set</h3>
         </div>
         <div className="competitor-grid">
-          {snapshot.competitors.map((company, index) => (
-            <article key={company}>
+          {competitors.map((company, index) => (
+            <article key={company.name}>
               <span>{String(index + 1).padStart(2, '0')}</span>
-              <strong>{company}</strong>
-              <small>{index < 2 ? 'Direct candidate' : index === 4 ? 'Adjacent candidate' : 'Substitute to test'}</small>
+              <strong>{company.name}</strong>
+              <small>{company.type} · {company.confidence}</small>
             </article>
           ))}
         </div>
@@ -456,23 +314,30 @@ function SnapshotReport({ snapshot, isGenerating }) {
           <h3>Evidence ledger</h3>
         </div>
         <div className="evidence-table">
-          {snapshot.evidence.map((item) => (
+          {evidence.map((item) => (
             <article key={item.id}>
               <span>{item.id}</span>
               <div>
                 <strong>{item.claim}</strong>
-                <p>{item.basis}</p>
-                <a href={item.route} target="_blank" rel="noreferrer">Open source route <ArrowRight size={13} /></a>
+                <p>{item.summary}</p>
+                <a href={item.source_url} target="_blank" rel="noreferrer">
+                  {item.source_title} <ArrowRight size={13} />
+                </a>
               </div>
-              <b>{item.confidenceLabel}</b>
+              <b>{item.confidence}</b>
             </article>
           ))}
         </div>
       </section>
 
-      <section className="caution-panel">
-        <Gauge size={19} />
-        <p>{snapshot.caution}</p>
+      <section className="brief-panel next-steps-panel">
+        <div className="section-title">
+          <LineChart size={18} />
+          <h3>Recommended next steps</h3>
+        </div>
+        <ul className="clean-list">
+          {snapshot.recommended_next_steps.map((step) => <li key={step}>{step}</li>)}
+        </ul>
       </section>
     </section>
   );
