@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import {
   ArrowRight,
   BarChart3,
@@ -125,16 +125,37 @@ function App() {
   const [audience, setAudience] = useState('Founder');
   const [selectedModules, setSelectedModules] = useState(['competitor-deep-dive', 'opportunity-score']);
   const [depth, setDepth] = useState('snapshot');
+  const [generatedReport, setGeneratedReport] = useState(null);
+  const [isGenerating, setIsGenerating] = useState(false);
 
-  const report = useMemo(() => inferResearch(topic, geography, audience), [topic, geography, audience]);
   const selectedTotal = moduleCatalog
     .filter((item) => selectedModules.includes(item.id))
     .reduce((total, item) => total + item.price, 0);
+  const canGenerate = topic.trim().length > 2 && !isGenerating;
+
+  const clearReport = () => {
+    setGeneratedReport(null);
+    setIsGenerating(false);
+  };
 
   const toggleModule = (id) => {
     setSelectedModules((current) =>
       current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
     );
+  };
+
+  const generateSnapshot = () => {
+    if (!canGenerate) return;
+    setDepth('snapshot');
+    setIsGenerating(true);
+
+    window.setTimeout(() => {
+      setGeneratedReport({
+        ...inferResearch(topic, geography, audience),
+        generatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      });
+      setIsGenerating(false);
+    }, 900);
   };
 
   return (
@@ -182,82 +203,49 @@ function App() {
               <span>Research topic</span>
               <input
                 value={topic}
-                onChange={(event) => setTopic(event.target.value)}
+                onChange={(event) => {
+                  setTopic(event.target.value);
+                  clearReport();
+                }}
                 placeholder="Example: EV battery recycling in India"
               />
             </label>
             <div className="control-row">
-              <Select label="Geography" value={geography} options={geographyOptions} onChange={setGeography} />
-              <Select label="Audience" value={audience} options={audienceOptions} onChange={setAudience} />
+              <Select
+                label="Geography"
+                value={geography}
+                options={geographyOptions}
+                onChange={(value) => {
+                  setGeography(value);
+                  clearReport();
+                }}
+              />
+              <Select
+                label="Audience"
+                value={audience}
+                options={audienceOptions}
+                onChange={(value) => {
+                  setAudience(value);
+                  clearReport();
+                }}
+              />
             </div>
+            <button className="primary-button generate-button" disabled={!canGenerate} onClick={generateSnapshot} type="button">
+              {isGenerating ? 'Generating snapshot...' : 'Generate free snapshot'}
+              {!isGenerating && <ArrowRight size={18} />}
+            </button>
           </div>
         </section>
 
         <section className="status-strip" aria-label="Report status">
-          <Metric icon={Zap} label="Free snapshot" value="Instant" />
+          <Metric icon={Zap} label="Free snapshot" value={generatedReport ? 'Generated' : isGenerating ? 'Running' : 'Ready'} />
           <Metric icon={ShieldCheck} label="Claim discipline" value="Evidence ledger" />
           <Metric icon={CircleDollarSign} label="Paid unlocks" value={`$${selectedTotal || 0}`} />
           <Metric icon={Users} label="Human review" value="From $750" />
         </section>
 
         <div className="main-grid">
-          <section className="report-surface" aria-label="Market report">
-            <div className="section-heading">
-              <div>
-                <p className="eyebrow">Generated brief</p>
-                <h2>{report.topic}</h2>
-              </div>
-              <span className="confidence">{report.confidence} confidence</span>
-            </div>
-
-            <div className="brief-grid">
-              <InsightBlock
-                icon={Globe2}
-                title="Market definition"
-                text={report.marketDefinition}
-              />
-              <InsightBlock
-                icon={BarChart3}
-                title="Demand signal"
-                text={report.urgency}
-              />
-              <InsightBlock
-                icon={Layers3}
-                title="Whitespace hypothesis"
-                text={report.whitespace}
-              />
-            </div>
-
-            <section className="competitor-section">
-              <div className="section-heading compact">
-                <div>
-                  <p className="eyebrow">Competitor landscape</p>
-                  <h3>Initial players to investigate</h3>
-                </div>
-                <span className="locked-pill"><LockKeyhole size={14} /> Full profiles locked</span>
-              </div>
-              <div className="competitor-table">
-                {report.competitors.map((company, index) => (
-                  <div className="competitor-row" key={company}>
-                    <span>{String(index + 1).padStart(2, '0')}</span>
-                    <strong>{company}</strong>
-                    <small>{index < 2 ? 'Direct competitor' : index === 4 ? 'Adjacent player' : 'Substitute or emerging player'}</small>
-                    <button type="button">Preview <ChevronRight size={15} /></button>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <section className="evidence-band">
-              <div>
-                <p className="eyebrow">Evidence ledger</p>
-                <h3>Every claim should resolve to sources, timestamps, and confidence.</h3>
-              </div>
-              <ul>
-                {sampleSignals.map((signal) => <li key={signal}>{signal}</li>)}
-              </ul>
-            </section>
-          </section>
+          <ReportSurface report={generatedReport} isGenerating={isGenerating} onGenerate={generateSnapshot} />
 
           <aside className="commerce-column" id="modules" aria-label="Paid insight modules">
             <section className="checkout-card">
@@ -342,6 +330,138 @@ function App() {
         </section>
       </section>
     </main>
+  );
+}
+
+function ReportSurface({ report, isGenerating, onGenerate }) {
+  if (isGenerating) {
+    return (
+      <section className="report-surface report-state" aria-label="Market report generation">
+        <div className="generating-mark">
+          <Sparkles size={28} />
+        </div>
+        <p className="eyebrow">Generating free snapshot</p>
+        <h2>Building the first market read.</h2>
+        <div className="generation-steps">
+          <span><Check size={16} /> Defining the market boundary</span>
+          <span><Check size={16} /> Mapping likely competitor types</span>
+          <span><Check size={16} /> Estimating signal strength and confidence</span>
+        </div>
+      </section>
+    );
+  }
+
+  if (!report) {
+    return (
+      <section className="report-surface report-state" aria-label="Market report empty state">
+        <div className="empty-report-icon">
+          <FileText size={30} />
+        </div>
+        <p className="eyebrow">No report generated yet</p>
+        <h2>Start with the free market snapshot.</h2>
+        <p>
+          The first output gives the user a useful market definition, demand signal,
+          competitor shortlist, and upgrade prompts for deeper paid analysis.
+        </p>
+        <div className="snapshot-includes">
+          <span>Market definition</span>
+          <span>Initial competitors</span>
+          <span>Demand signal</span>
+          <span>Confidence level</span>
+        </div>
+        <button className="secondary-action" onClick={onGenerate} type="button">
+          Generate sample snapshot
+          <ArrowRight size={16} />
+        </button>
+      </section>
+    );
+  }
+
+  return (
+    <section className="report-surface" aria-label="Market report">
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow">Generated free snapshot</p>
+          <h2>{report.topic}</h2>
+          <small className="generated-meta">Generated at {report.generatedAt}</small>
+        </div>
+        <span className="confidence">{report.confidence} confidence</span>
+      </div>
+
+      <div className="brief-grid">
+        <InsightBlock
+          icon={Globe2}
+          title="Market definition"
+          text={report.marketDefinition}
+        />
+        <InsightBlock
+          icon={BarChart3}
+          title="Demand signal"
+          text={report.urgency}
+        />
+        <InsightBlock
+          icon={Layers3}
+          title="Whitespace hypothesis"
+          text={report.whitespace}
+        />
+      </div>
+
+      <section className="snapshot-summary">
+        <div>
+          <span>Category</span>
+          <strong>{report.category}</strong>
+        </div>
+        <div>
+          <span>Likely buyer</span>
+          <strong>{report.buyer}</strong>
+        </div>
+        <div>
+          <span>Attractiveness</span>
+          <strong>{report.attractiveness}/100</strong>
+        </div>
+      </section>
+
+      <section className="competitor-section">
+        <div className="section-heading compact">
+          <div>
+            <p className="eyebrow">Competitor landscape</p>
+            <h3>Initial players to investigate</h3>
+          </div>
+          <span className="locked-pill"><LockKeyhole size={14} /> Full profiles locked</span>
+        </div>
+        <div className="competitor-table">
+          {report.competitors.map((company, index) => (
+            <div className="competitor-row" key={company}>
+              <span>{String(index + 1).padStart(2, '0')}</span>
+              <strong>{company}</strong>
+              <small>{index < 2 ? 'Direct competitor' : index === 4 ? 'Adjacent player' : 'Substitute or emerging player'}</small>
+              <button type="button">Preview <ChevronRight size={15} /></button>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="evidence-band">
+        <div>
+          <p className="eyebrow">Evidence ledger</p>
+          <h3>Every claim should resolve to sources, timestamps, and confidence.</h3>
+        </div>
+        <ul>
+          {sampleSignals.map((signal) => <li key={signal}>{signal}</li>)}
+        </ul>
+      </section>
+
+      <section className="report-upsell">
+        <div>
+          <p className="eyebrow">Next best paid step</p>
+          <h3>Unlock deeper competitor profiles and opportunity scoring for this topic.</h3>
+        </div>
+        <button className="primary-button" type="button">
+          Choose deep-dive modules
+          <ArrowRight size={18} />
+        </button>
+      </section>
+    </section>
   );
 }
 
