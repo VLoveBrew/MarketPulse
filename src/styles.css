@@ -234,6 +234,17 @@ select:focus {
   font-weight: 650;
 }
 
+.error-note {
+  margin: 0;
+  border: 1px solid rgba(155, 77, 54, 0.24);
+  border-radius: 8px;
+  padding: 10px;
+  color: #6f3a2a;
+  background: #fff8f2;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .spin {
   animation: spin 0.8s linear infinite;
 }
@@ -300,6 +311,35 @@ select:focus {
   opacity: 0.72;
 }
 
+.loading-state {
+  min-height: 420px;
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 12px;
+}
+
+.loading-state svg {
+  color: var(--teal);
+}
+
+.loading-state h2 {
+  max-width: 720px;
+  margin: 0;
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: 58px;
+  font-weight: 650;
+  line-height: 0.98;
+  letter-spacing: 0;
+}
+
+.loading-state p:last-child {
+  max-width: 520px;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
 .report-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -350,6 +390,29 @@ select:focus {
   text-transform: uppercase;
 }
 
+.confidence-reason {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  margin-bottom: 18px;
+  border: 1px solid rgba(13, 114, 104, 0.18);
+  border-radius: 8px;
+  padding: 12px;
+  background: #edf8f4;
+}
+
+.confidence-reason svg {
+  color: var(--teal-deep);
+}
+
+.confidence-reason p {
+  margin: 0;
+  color: var(--teal-deep);
+  line-height: 1.45;
+  font-weight: 650;
+}
+
 .executive-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -383,6 +446,14 @@ select:focus {
   color: var(--soft-ink);
   font-size: 17px;
   line-height: 1.45;
+}
+
+.executive-grid small {
+  display: block;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .snapshot-grid {
@@ -427,6 +498,20 @@ select:focus {
   padding-left: 22px;
   color: var(--soft-ink);
   line-height: 1.5;
+}
+
+.clean-list strong,
+.clean-list span {
+  display: block;
+}
+
+.clean-list strong {
+  color: var(--ink);
+}
+
+.clean-list span {
+  margin-top: 3px;
+  color: var(--muted);
 }
 
 .clean-list li::before {
@@ -542,6 +627,10 @@ select:focus {
   background: #edf8f4;
   font-size: 12px;
   text-align: center;
+}
+
+.next-steps-panel {
+  margin-top: 18px;
 }
 
 .caution-panel {
