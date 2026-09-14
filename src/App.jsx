@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
 import {
-  AlertTriangle,
   ArrowRight,
   BarChart3,
-  Bot,
   BriefcaseBusiness,
   Building2,
   Check,
-  ChevronRight,
   ClipboardCheck,
   Database,
   FileSearch,
@@ -15,47 +12,15 @@ import {
   Gauge,
   Globe2,
   Layers3,
-  LockKeyhole,
+  LineChart,
   MessageSquareText,
+  RefreshCw,
   Search,
   ShieldCheck,
   Sparkles,
   Target,
-  Unlock,
   Users,
-  Zap,
 } from 'lucide-react';
-
-const moduleCatalog = [
-  {
-    id: 'competitor-deep-dive',
-    name: 'Competitor deep dive',
-    price: 29,
-    icon: Building2,
-    detail: 'Full profiles, positioning, pricing clues, GTM motion, strengths, and weaknesses.',
-  },
-  {
-    id: 'market-sizing',
-    name: 'Market sizing estimate',
-    price: 49,
-    icon: Gauge,
-    detail: 'TAM, SAM, SOM assumptions with confidence bands and source traceability.',
-  },
-  {
-    id: 'opportunity-score',
-    name: 'Opportunity score',
-    price: 49,
-    icon: Target,
-    detail: 'Attractiveness score across urgency, budget, growth, fragmentation, and defensibility.',
-  },
-  {
-    id: 'strategic-recommendations',
-    name: 'Strategic recommendations',
-    price: 99,
-    icon: BriefcaseBusiness,
-    detail: 'Entry angles, wedge segments, pricing moves, partnership plays, and key risks.',
-  },
-];
 
 const audienceOptions = ['Founder', 'Consultant', 'Product marketer', 'Investor', 'Sales leader'];
 const geographyOptions = ['United States', 'India', 'Europe', 'Global', 'APAC'];
@@ -63,49 +28,47 @@ const geographyOptions = ['United States', 'India', 'Europe', 'Global', 'APAC'];
 const sourceAdapters = [
   {
     name: 'Company web',
-    type: 'Primary',
+    type: 'Primary evidence',
     authority: 88,
-    coverage: 'Positioning, product claims, pricing, customer proof, integration depth',
+    coverage: 'Positioning, pricing hints, proof points, customer logos, implementation depth',
   },
   {
     name: 'News and press',
-    type: 'Momentum',
+    type: 'Momentum signal',
     authority: 74,
     coverage: 'Funding, launches, partnerships, regulation, executive commentary',
   },
   {
     name: 'Filings and investor material',
-    type: 'Financial',
+    type: 'Financial evidence',
     authority: 92,
-    coverage: 'Revenue language, risk factors, market exposure, segment priorities',
+    coverage: 'Risk factors, segment priorities, market exposure, revenue language',
   },
   {
     name: 'Jobs and hiring',
     type: 'Demand proxy',
     authority: 68,
-    coverage: 'Budget formation, skills demand, expansion signals, GTM hiring',
+    coverage: 'Budget formation, expansion signals, GTM hiring, skill demand',
   },
   {
-    name: 'Research and academic graph',
+    name: 'Research graph',
     type: 'External validation',
     authority: 82,
     coverage: 'Technology maturity, adoption barriers, research velocity',
   },
   {
-    name: 'Reviews and communities',
-    type: 'Buyer voice',
+    name: 'Buyer voice',
+    type: 'Friction signal',
     authority: 64,
-    coverage: 'Pain points, switching triggers, satisfaction gaps, feature complaints',
+    coverage: 'Unmet needs, switching triggers, complaints, substitute behavior',
   },
 ];
 
-const pipelineSteps = [
-  'Parse topic and detect market boundaries',
-  'Create source-specific search plan',
-  'Collect public evidence from priority adapters',
-  'Extract claims, entities, dates, and source snippets',
-  'Score authority, recency, specificity, and corroboration',
-  'Synthesize only claims with enough support',
+const researchDepth = [
+  { label: 'Market boundary', value: 'Defined before sizing', icon: Globe2 },
+  { label: 'Demand quality', value: 'Triangulated signals', icon: LineChart },
+  { label: 'Competitor map', value: 'Direct + substitutes', icon: Building2 },
+  { label: 'Confidence', value: 'Claim-level scoring', icon: ClipboardCheck },
 ];
 
 function cleanTopic(topic) {
@@ -118,191 +81,179 @@ function detectSegment(topic) {
     {
       match: ['health', 'clinic', 'doctor', 'dental', 'patient', 'hospital'],
       segment: 'Healthcare operations technology',
-      competitorSet: ['Abridge', 'Nabla', 'Suki AI', 'Freed', 'Tebra'],
-      demandSignal: 'Healthcare buyers show strong urgency when a tool reduces documentation burden, compliance risk, or staff capacity pressure.',
-      wedge: 'A narrow clinical or administrative workflow is more defensible than a broad horizontal assistant.',
-      risk: 'Clinical workflow claims need careful regulatory and source validation before being treated as strategy-grade evidence.',
+      competitors: ['Abridge', 'Nabla', 'Suki AI', 'Freed', 'Tebra'],
+      headline: 'Demand is strongest where documentation burden, staff shortages, and compliance risk overlap.',
+      angle: 'The attractive wedge is likely a specialty workflow where generic AI tools lack clinical context and auditability.',
+      caution: 'Regulatory exposure can make broad claims fragile. Strategy-grade work should verify compliance language and workflow ownership.',
+      signal: 78,
     },
     {
       match: ['fintech', 'finance', 'bank', 'payment', 'lending', 'wealth'],
       segment: 'Financial services technology',
-      competitorSet: ['Plaid', 'Stripe', 'Adyen', 'Modern Treasury', 'Unit'],
-      demandSignal: 'Demand is strongest where integration friction, auditability, or compliance overhead creates measurable operating cost.',
-      wedge: 'A credible wedge should focus on a regulated workflow where trust and data reliability matter more than feature breadth.',
-      risk: 'Fintech markets can look larger than they are when compliance, distribution, and partner dependency are under-modeled.',
+      competitors: ['Plaid', 'Stripe', 'Adyen', 'Modern Treasury', 'Unit'],
+      headline: 'Demand quality improves when the product reduces integration friction, audit burden, or operational risk.',
+      angle: 'The strongest wedge is a narrow regulated workflow where trust and reliability matter more than feature breadth.',
+      caution: 'Distribution dependencies and compliance constraints can shrink the reachable market if they are under-modeled.',
+      signal: 74,
     },
     {
       match: ['ai', 'automation', 'copilot', 'agent', 'llm'],
       segment: 'AI-enabled workflow software',
-      competitorSet: ['Perplexity Enterprise', 'Glean', 'Hebbia', 'Harvey', 'Dust'],
-      demandSignal: 'Buyer interest is high, but the category needs evidence that the workflow produces repeat usage and measurable productivity gains.',
-      wedge: 'The strongest entry point is likely a vertical or role-specific workflow where proprietary context improves the output.',
-      risk: 'AI categories attract copycat positioning, so pricing pages, case studies, and retention evidence matter more than launch noise.',
+      competitors: ['Perplexity Enterprise', 'Glean', 'Hebbia', 'Harvey', 'Dust'],
+      headline: 'Interest is high, but durable demand depends on repeatable workflow value rather than launch novelty.',
+      angle: 'The most defensible wedge is likely role-specific intelligence with proprietary context, source traceability, and workflow memory.',
+      caution: 'AI markets are crowded with similar positioning. Pricing evidence, retention proxies, and credible customer proof matter more than announcement volume.',
+      signal: 84,
     },
     {
       match: ['saas', 'b2b', 'enterprise', 'sales', 'marketing', 'crm'],
       segment: 'B2B software and services',
-      competitorSet: ['HubSpot', 'Salesforce', 'Gong', '6sense', 'Clari'],
-      demandSignal: 'Demand depends on whether the category connects to budgeted workflows such as revenue growth, cost reduction, or risk control.',
-      wedge: 'Position around a painful workflow owned by one buyer before expanding into a broader platform story.',
-      risk: 'Crowded B2B categories require proof of differentiation against incumbent suites and internal workflows.',
+      competitors: ['HubSpot', 'Salesforce', 'Gong', '6sense', 'Clari'],
+      headline: 'Budget exists when the category maps directly to revenue growth, cost reduction, or risk control.',
+      angle: 'A focused buyer workflow should come before a broad platform narrative.',
+      caution: 'Incumbent suites and internal workflows are real substitutes. Differentiation must be proven at the use-case level.',
+      signal: 76,
     },
   ];
 
   return checks.find((item) => item.match.some((term) => lower.includes(term))) || {
     segment: 'Emerging business category',
-    competitorSet: ['Incumbent suites', 'Vertical specialists', 'Agency substitutes', 'Open-source tooling', 'Internal teams'],
-    demandSignal: 'The market needs stronger segmentation before demand quality can be judged with confidence.',
-    wedge: 'The first paid research pass should identify buyer pain, alternatives, and the smallest category where urgency is visible.',
-    risk: 'The initial query is broad, so confidence should stay conservative until multiple independent source types corroborate the category.',
+    competitors: ['Incumbent suites', 'Vertical specialists', 'Agency substitutes', 'Open-source tooling', 'Internal teams'],
+    headline: 'The category is not yet specific enough for high-confidence sizing; the first useful step is market boundary discipline.',
+    angle: 'Narrow the category around a buyer, a painful workflow, and the substitute currently absorbing the budget.',
+    caution: 'Broad category labels can create false confidence. Multiple independent source types should corroborate the market before strategy decisions.',
+    signal: 68,
   };
 }
 
-function buildSearchPlan(topic, geography, segment) {
-  const encodedTopic = encodeURIComponent(topic);
-  const encodedGeo = encodeURIComponent(geography);
+function audienceRead(audience) {
+  const reads = {
+    Founder: 'founders deciding whether the opportunity deserves deeper validation',
+    Consultant: 'consultants producing client-ready intelligence with traceable evidence',
+    'Product marketer': 'marketing teams turning competitor signals into positioning and battlecards',
+    Investor: 'investors screening momentum, defensibility, and downside risk',
+    'Sales leader': 'sales teams entering a new vertical or competitive motion',
+  };
+
+  return reads[audience] || reads.Founder;
+}
+
+function sourceRoute(label, topic, geography) {
+  const query = encodeURIComponent(`${topic} ${label} ${geography}`);
+  const routes = {
+    'Company proof': `https://www.google.com/search?q=${query}+pricing+customers+case+study`,
+    'Market momentum': `https://news.google.com/search?q=${query}+funding+launch+partnership`,
+    'Public disclosures': 'https://www.sec.gov/search-filings',
+    'Hiring signal': `https://www.google.com/search?q=${query}+jobs+hiring+go-to-market`,
+    'Research validation': `https://openalex.org/works?search=${encodeURIComponent(topic)}`,
+    'Buyer friction': `https://www.google.com/search?q=${query}+reviews+complaints+alternatives`,
+  };
+
+  return routes[label];
+}
+
+function buildEvidence(topic, geography, segment, audience) {
+  const today = new Date().toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
 
   return [
     {
-      source: 'Company and product pages',
-      query: `"${topic}" pricing customers competitors ${geography}`,
-      purpose: 'Verify product maturity, positioning, pricing hints, and proof points.',
-      depth: 'Free scans top 3-5 pages; paid deep dive captures screenshots and change history.',
-      link: `https://www.google.com/search?q=${encodedTopic}+pricing+customers+competitors+${encodedGeo}`,
+      id: 'E01',
+      label: 'Company proof',
+      claim: `Frame the topic as ${segment.segment} before attempting market sizing.`,
+      basis: 'The category should be bounded through product language, customer proof, and adjacent substitute analysis.',
+      confidence: 86,
+      route: sourceRoute('Company proof', topic, geography),
+      checkedAt: today,
     },
     {
-      source: 'News, funding, and partnerships',
-      query: `"${topic}" market funding partnership launch ${geography}`,
-      purpose: 'Separate real market momentum from isolated announcements.',
-      depth: 'Free checks recent signals; paid adds timeline and sentiment clustering.',
-      link: `https://news.google.com/search?q=${encodedTopic}+market+funding+partnership+${encodedGeo}`,
+      id: 'E02',
+      label: 'Market momentum',
+      claim: segment.headline,
+      basis: 'Momentum should be confirmed through funding, partnerships, launch cadence, and customer adoption signals.',
+      confidence: segment.signal,
+      route: sourceRoute('Market momentum', topic, geography),
+      checkedAt: today,
     },
     {
-      source: 'Filings and public-company disclosures',
-      query: `${segment.segment} risk factors revenue segment filing`,
-      purpose: 'Ground category claims in company disclosures when public companies are involved.',
-      depth: 'Free flags likely public comparables; paid reads annual reports, filings, and investor decks.',
-      link: 'https://www.sec.gov/search-filings',
+      id: 'E03',
+      label: 'Public disclosures',
+      claim: 'Public-company disclosures are useful only when the topic touches listed companies or their strategic segments.',
+      basis: 'Filings can validate risk language, executive priorities, and exposure to an adjacent category.',
+      confidence: 79,
+      route: sourceRoute('Public disclosures', topic, geography),
+      checkedAt: today,
     },
     {
-      source: 'Jobs and hiring signals',
-      query: `"${topic}" hiring jobs "go-to-market" "product manager" ${geography}`,
-      purpose: 'Use hiring as a proxy for budget formation and market expansion.',
-      depth: 'Free samples role categories; paid quantifies role frequency by competitor.',
-      link: `https://www.google.com/search?q=${encodedTopic}+hiring+jobs+go-to-market+product+manager+${encodedGeo}`,
+      id: 'E04',
+      label: 'Hiring signal',
+      claim: 'Hiring patterns are a useful proxy for where teams are placing budget and operational focus.',
+      basis: 'Role frequency, seniority, and functional mix help distinguish curiosity from organized investment.',
+      confidence: 72,
+      route: sourceRoute('Hiring signal', topic, geography),
+      checkedAt: today,
     },
     {
-      source: 'Research and technical literature',
-      query: `"${topic}" adoption barriers research paper market study`,
-      purpose: 'Validate technology maturity, adoption barriers, and terminology.',
-      depth: 'Free checks research availability; paid maps themes and citation clusters.',
-      link: `https://openalex.org/works?search=${encodedTopic}`,
+      id: 'E05',
+      label: 'Buyer friction',
+      claim: segment.angle,
+      basis: 'Whitespace should be derived from complaints, alternatives, switching friction, and workflow ownership.',
+      confidence: 74,
+      route: sourceRoute('Buyer friction', topic, geography),
+      checkedAt: today,
     },
-    {
-      source: 'Buyer voice and review surfaces',
-      query: `"${topic}" reviews complaints alternatives reddit g2`,
-      purpose: 'Find unmet needs and switching triggers that vendor copy hides.',
-      depth: 'Free surfaces themes; paid builds pain-point frequency and quote bank.',
-      link: `https://www.google.com/search?q=${encodedTopic}+reviews+complaints+alternatives`,
-    },
-  ];
-}
-
-function buildEvidence(topic, geography, audience, segment) {
-  const now = new Date();
-  const date = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  const baseEvidence = [
-    {
-      claim: `${topic} should first be analyzed as ${segment.segment}, not as a standalone keyword market.`,
-      source: 'Market boundary scan',
-      sourceType: 'Synthesis',
-      support: 86,
-      reason: 'Category language appears across product, news, and research-style queries.',
-    },
-    {
-      claim: segment.demandSignal,
-      source: 'Demand signal triangulation',
-      sourceType: 'Cross-source',
-      support: 78,
-      reason: 'Checks buyer pain across company pages, hiring demand, and buyer-voice searches.',
-    },
-    {
-      claim: `The first competitor set to verify includes ${segment.competitorSet.slice(0, 3).join(', ')} and adjacent substitutes.`,
-      source: 'Competitor entity extraction',
-      sourceType: 'Entity map',
-      support: 72,
-      reason: 'Competitor candidates are ranked by category fit before full profile verification.',
-    },
-    {
-      claim: segment.wedge,
-      source: 'Whitespace hypothesis model',
-      sourceType: 'Analyst synthesis',
-      support: 69,
-      reason: 'The recommendation is hypothesis-grade until paid research validates pricing, adoption, and buyer interviews.',
-    },
-    {
-      claim: `${audience}s in ${geography} need a decision-ready view that separates sourced facts from analyst interpretation.`,
-      source: 'Audience relevance model',
-      sourceType: 'Use-case fit',
-      support: 75,
-      reason: 'Output is shaped around the selected audience and geographic scope.',
-    },
-  ];
-
-  return baseEvidence.map((item, index) => ({
+  ].map((item) => ({
     ...item,
-    id: `E${String(index + 1).padStart(2, '0')}`,
-    checkedAt: date,
-    confidence: item.support >= 82 ? 'High' : item.support >= 72 ? 'Medium-high' : 'Medium',
+    confidenceLabel: item.confidence >= 82 ? 'High' : item.confidence >= 73 ? 'Medium-high' : 'Medium',
+    audienceFit: audienceRead(audience),
   }));
 }
 
-function scoreReport(evidence, sourcePlan, segment) {
-  const averageSupport = Math.round(evidence.reduce((total, item) => total + item.support, 0) / evidence.length);
-  const sourceCoverage = Math.round((sourcePlan.length / 6) * 100);
-  const corroboration = Math.round((averageSupport * 0.55) + (sourceCoverage * 0.25) + (segment.segment === 'Emerging business category' ? 8 : 16));
-  const confidenceScore = Math.min(91, Math.max(52, corroboration));
-
-  return {
-    confidenceScore,
-    confidenceLabel: confidenceScore >= 82 ? 'High' : confidenceScore >= 70 ? 'Medium-high' : 'Medium',
-    sourceCoverage,
-    evidenceCount: evidence.length,
-    unlockCount: 42,
-  };
-}
-
-function buildResearchReport(topic, geography, audience) {
+function buildSnapshot(topic, geography, audience) {
   const normalized = cleanTopic(topic);
   const segment = detectSegment(normalized);
-  const sourcePlan = buildSearchPlan(normalized, geography, segment);
-  const evidence = buildEvidence(normalized, geography, audience, segment);
-  const scoring = scoreReport(evidence, sourcePlan, segment);
-  const buyer = audience === 'Investor'
-    ? 'investors screening category momentum, defensibility, and downside risk'
-    : audience === 'Product marketer'
-      ? 'marketing teams turning raw competitor signals into positioning and battlecards'
-      : audience === 'Consultant'
-        ? 'consultants producing client-ready intelligence with traceable evidence'
-        : audience === 'Sales leader'
-          ? 'sales teams entering new accounts, verticals, or competitive deals'
-          : 'founders deciding whether the opportunity deserves deeper validation';
+  const evidence = buildEvidence(normalized, geography, segment, audience);
+  const confidence = Math.round(evidence.reduce((total, item) => total + item.confidence, 0) / evidence.length);
 
   return {
     topic: normalized,
     geography,
     audience,
-    category: segment.segment,
-    buyer,
-    competitors: segment.competitorSet,
-    marketDefinition: `${normalized} in ${geography} should be framed as ${segment.segment}. The likely user of this research is ${buyer}.`,
-    demandSignal: segment.demandSignal,
-    whitespace: segment.wedge,
-    risk: segment.risk,
-    sourcePlan,
-    evidence,
-    scoring,
+    segment: segment.segment,
+    competitors: segment.competitors,
     generatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    confidence,
+    confidenceLabel: confidence >= 82 ? 'High confidence' : confidence >= 74 ? 'Medium-high confidence' : 'Medium confidence',
+    executiveRead: [
+      {
+        title: 'Category read',
+        text: `${normalized} is best assessed as ${segment.segment} in ${geography}, not as a broad keyword market.`,
+      },
+      {
+        title: 'Demand quality',
+        text: segment.headline,
+      },
+      {
+        title: 'Strategic angle',
+        text: segment.angle,
+      },
+    ],
+    whatWeKnow: [
+      `The first useful buyer lens is ${audienceRead(audience)}.`,
+      'The market should be segmented by workflow pain, budget owner, substitute behavior, and proof of repeat usage.',
+      'Competitor analysis should include direct vendors, adjacent suites, agencies, open-source alternatives, and internal teams.',
+    ],
+    toVerify: [
+      'Which competitors show credible customer proof rather than generic category language?',
+      'Are buyers actively budgeting for this workflow, or only experimenting with it?',
+      'Which pain point has the highest urgency, frequency, and willingness to pay?',
+      'What evidence contradicts the initial attractiveness of the category?',
+    ],
+    caution: segment.caution,
+    evidence,
   };
 }
 
@@ -310,406 +261,218 @@ function App() {
   const [topic, setTopic] = useState('AI market research tools for boutique consultants');
   const [geography, setGeography] = useState('United States');
   const [audience, setAudience] = useState('Founder');
-  const [selectedModules, setSelectedModules] = useState(['competitor-deep-dive', 'opportunity-score']);
-  const [depth, setDepth] = useState('snapshot');
-  const [generatedReport, setGeneratedReport] = useState(null);
+  const [snapshot, setSnapshot] = useState(() => buildSnapshot(topic, geography, audience));
   const [isGenerating, setIsGenerating] = useState(false);
+  const [hasDraftChanges, setHasDraftChanges] = useState(false);
 
-  const selectedTotal = moduleCatalog
-    .filter((item) => selectedModules.includes(item.id))
-    .reduce((total, item) => total + item.price, 0);
-  const canGenerate = topic.trim().length > 2 && !isGenerating;
-
-  const clearReport = () => {
-    setGeneratedReport(null);
-    setIsGenerating(false);
+  const updateTopic = (value) => {
+    setTopic(value);
+    setHasDraftChanges(true);
   };
 
-  const toggleModule = (id) => {
-    setSelectedModules((current) =>
-      current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
-    );
+  const updateGeography = (value) => {
+    setGeography(value);
+    setHasDraftChanges(true);
   };
 
-  const generateSnapshot = () => {
-    if (!canGenerate) return;
-    setDepth('snapshot');
+  const updateAudience = (value) => {
+    setAudience(value);
+    setHasDraftChanges(true);
+  };
+
+  const refreshSnapshot = () => {
+    if (topic.trim().length < 3 || isGenerating) return;
     setIsGenerating(true);
 
     window.setTimeout(() => {
-      setGeneratedReport(buildResearchReport(topic, geography, audience));
+      setSnapshot(buildSnapshot(topic, geography, audience));
+      setHasDraftChanges(false);
       setIsGenerating(false);
-    }, 1200);
+    }, 900);
   };
 
   return (
-    <main className="app-shell">
-      <aside className="side-rail" aria-label="Product navigation">
-        <div className="brand-lockup">
-          <span className="brand-mark">MI</span>
-          <div>
-            <strong>MarketPulse</strong>
-            <small>Intelligence Engine</small>
-          </div>
-        </div>
-        <nav className="rail-nav">
-          <a className="active" href="#research"><Search size={18} /> Research</a>
-          <a href="#modules"><Unlock size={18} /> Paid modules</a>
-          <a href="#mcp"><Bot size={18} /> MCP access</a>
-          <a href="#consulting"><BriefcaseBusiness size={18} /> Consultant desk</a>
+    <main className="site-shell">
+      <header className="masthead">
+        <a className="brand" href="#top" aria-label="MarketPulse home">
+          <span>MP</span>
+          <strong>MarketPulse</strong>
+        </a>
+        <nav aria-label="Page navigation">
+          <a href="#snapshot">Snapshot</a>
+          <a href="#evidence">Evidence</a>
+          <a href="#method">Method</a>
+          <a href="#consulting">Analyst review</a>
         </nav>
-        <div className="rail-panel">
-          <span>Research model</span>
-          <strong>Evidence first, synthesis second</strong>
-          <p>Use the free snapshot as a trust-building lead magnet, then sell source depth, exports, monitoring, and expert judgment.</p>
-        </div>
-      </aside>
+      </header>
 
-      <section className="workspace">
-        <header className="top-bar">
-          <div>
-            <p className="eyebrow">Market and competitor intelligence prototype</p>
-            <h1>Turn public evidence into a scored market brief.</h1>
+      <section className="hero-grid" id="top">
+        <div className="hero-copy">
+          <p className="eyebrow">Market intelligence workspace</p>
+          <h1>Market snapshots that show their work.</h1>
+          <p>
+            MarketPulse turns a research question into a structured brief with source routes,
+            confidence scoring, competitor candidates, and clear uncertainties.
+          </p>
+        </div>
+
+        <section className="query-panel" aria-label="Research query">
+          <label>
+            <span>Research topic</span>
+            <input value={topic} onChange={(event) => updateTopic(event.target.value)} />
+          </label>
+          <div className="field-row">
+            <Select label="Geography" value={geography} options={geographyOptions} onChange={updateGeography} />
+            <Select label="Audience" value={audience} options={audienceOptions} onChange={updateAudience} />
           </div>
-          <button className="ghost-button" type="button">
-            <FileText size={18} />
-            Export preview
+          <button className="primary-action" onClick={refreshSnapshot} disabled={topic.trim().length < 3 || isGenerating} type="button">
+            {isGenerating ? <RefreshCw className="spin" size={18} /> : <Sparkles size={18} />}
+            {isGenerating ? 'Refreshing snapshot' : hasDraftChanges ? 'Refresh snapshot' : 'Run snapshot again'}
           </button>
-        </header>
+          <small>{hasDraftChanges ? 'Inputs changed. Refresh to update the brief.' : 'Snapshot is current for the selected inputs.'}</small>
+        </section>
+      </section>
 
-        <section className="query-band" id="research" aria-label="Research query">
-          <div className="query-copy">
-            <span><Sparkles size={16} /> Evidence-backed snapshot</span>
-            <h2>Research any market, product category, company, or startup idea.</h2>
-            <p>The engine plans the source scan, extracts claims, scores confidence, and separates verified evidence from analyst hypotheses.</p>
-          </div>
-          <div className="query-controls">
-            <label className="topic-field">
-              <span>Research topic</span>
-              <input
-                value={topic}
-                onChange={(event) => {
-                  setTopic(event.target.value);
-                  clearReport();
-                }}
-                placeholder="Example: EV battery recycling in India"
-              />
-            </label>
-            <div className="control-row">
-              <Select
-                label="Geography"
-                value={geography}
-                options={geographyOptions}
-                onChange={(value) => {
-                  setGeography(value);
-                  clearReport();
-                }}
-              />
-              <Select
-                label="Audience"
-                value={audience}
-                options={audienceOptions}
-                onChange={(value) => {
-                  setAudience(value);
-                  clearReport();
-                }}
-              />
+      <section className="signal-strip" aria-label="Snapshot quality signals">
+        {researchDepth.map((item) => {
+          const Icon = item.icon;
+          return (
+            <div className="signal-card" key={item.label}>
+              <Icon size={18} />
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
             </div>
-            <button className="primary-button generate-button" disabled={!canGenerate} onClick={generateSnapshot} type="button">
-              {isGenerating ? 'Scanning public-source model...' : 'Generate evidence-backed snapshot'}
-              {!isGenerating && <ArrowRight size={18} />}
-            </button>
-          </div>
-        </section>
+          );
+        })}
+      </section>
 
-        <section className="status-strip" aria-label="Report status">
-          <Metric icon={Zap} label="Free snapshot" value={generatedReport ? 'Generated' : isGenerating ? 'Running' : 'Ready'} />
-          <Metric icon={ShieldCheck} label="Claim discipline" value={generatedReport ? `${generatedReport.scoring.confidenceScore}% scored` : 'Evidence ledger'} />
-          <Metric icon={Database} label="Source adapters" value="6 public sets" />
-          <Metric icon={Users} label="Human review" value="From $750" />
-        </section>
+      <SnapshotReport snapshot={snapshot} isGenerating={isGenerating} />
 
-        <div className="main-grid">
-          <ReportSurface report={generatedReport} isGenerating={isGenerating} onGenerate={generateSnapshot} />
-
-          <aside className="commerce-column" id="modules" aria-label="Paid insight modules">
-            <section className="checkout-card">
-              <p className="eyebrow">Deep-dive unlock</p>
-              <h2>Charge for verified depth, not longer text.</h2>
-              <div className="depth-toggle" role="tablist" aria-label="Report depth">
-                <button className={depth === 'snapshot' ? 'active' : ''} onClick={() => setDepth('snapshot')} type="button">Snapshot</button>
-                <button className={depth === 'deep' ? 'active' : ''} onClick={() => setDepth('deep')} type="button">Deep dive</button>
-              </div>
-
-              <div className="module-list">
-                {moduleCatalog.map((module) => {
-                  const Icon = module.icon;
-                  const active = selectedModules.includes(module.id);
-                  return (
-                    <button
-                      className={`module-item ${active ? 'selected' : ''}`}
-                      key={module.id}
-                      onClick={() => toggleModule(module.id)}
-                      type="button"
-                    >
-                      <span className="module-icon"><Icon size={18} /></span>
-                      <span>
-                        <strong>{module.name}</strong>
-                        <small>{module.detail}</small>
-                      </span>
-                      <b>${module.price}</b>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="total-row">
-                <span>Selected insight pack</span>
-                <strong>${selectedTotal}</strong>
-              </div>
-              <button className="primary-button" type="button">
-                Unlock full source scan
-                <ArrowRight size={18} />
-              </button>
-            </section>
-
-            <section className="mcp-card" id="mcp">
-              <div className="mcp-header">
-                <Bot size={22} />
-                <div>
-                  <p className="eyebrow">Premium integration</p>
-                  <h3>MCP tools for AI-native teams</h3>
-                </div>
-              </div>
-              <code>plan_research_sources</code>
-              <code>collect_public_evidence</code>
-              <code>score_market_claims</code>
-              <code>generate_brief</code>
-              <p>Make MCP access a Pro or Agency feature once teams trust the evidence workflow.</p>
-            </section>
-          </aside>
+      <section className="method-section" id="method">
+        <div>
+          <p className="eyebrow">Research method</p>
+          <h2>Confidence is earned claim by claim.</h2>
+          <p>
+            The report separates market facts, source-backed signals, and analyst hypotheses.
+            Each claim is scored for authority, specificity, recency, corroboration, and contradiction risk.
+          </p>
         </div>
+        <div className="adapter-grid">
+          {sourceAdapters.map((adapter) => (
+            <article key={adapter.name}>
+              <Database size={18} />
+              <strong>{adapter.name}</strong>
+              <span>{adapter.type}</span>
+              <p>{adapter.coverage}</p>
+              <b>{adapter.authority}% authority baseline</b>
+            </article>
+          ))}
+        </div>
+      </section>
 
-        <section className="consulting-band" id="consulting">
-          <div>
-            <p className="eyebrow">Human consultant upgrade</p>
-            <h2>For high-stakes decisions, sell expert synthesis on top of the engine.</h2>
-            <p>Offer senior review, strategic options, market-entry memos, GTM recommendations, and investor-ready narratives at a lower price than traditional strategy consulting.</p>
-          </div>
-          <div className="offer-grid">
-            <Offer title="Expert review" price="$750+" text="Refine the AI report, validate weak claims, and sharpen the strategic takeaways." />
-            <Offer title="Strategic deep dive" price="$2,500+" text="Custom research, source expansion, interview plan, category map, risks, and recommended market wedge." />
-            <Offer title="Retainer desk" price="$5,000/mo" text="Recurring competitor tracking, alerts, evidence updates, battlecards, and leadership-ready briefs." />
-          </div>
-        </section>
-
-        <section className="pricing-ladder">
-          <p className="eyebrow">Suggested monetization ladder</p>
-          <div className="ladder">
-            <Step label="Free" value="Evidence snapshot" />
-            <Step label="$29-$199" value="Source modules" />
-            <Step label="$149/mo" value="Pro workspace" />
-            <Step label="$999/mo" value="Agency + MCP" />
-            <Step label="$2.5k+" value="Consulting" />
-          </div>
-        </section>
+      <section className="consulting-section" id="consulting">
+        <div>
+          <p className="eyebrow">Analyst review</p>
+          <h2>When the decision matters, add a human layer.</h2>
+          <p>
+            Use the engine for structured discovery, then bring in expert review for market-entry choices,
+            investor narratives, board-ready memos, and strategy recommendations.
+          </p>
+        </div>
+        <div className="review-actions">
+          <button type="button"><MessageSquareText size={17} /> Discuss a deep dive</button>
+          <button type="button"><FileText size={17} /> Export brief</button>
+        </div>
       </section>
     </main>
   );
 }
 
-function ReportSurface({ report, isGenerating, onGenerate }) {
-  if (isGenerating) {
-    return (
-      <section className="report-surface report-state" aria-label="Market report generation">
-        <div className="generating-mark">
-          <Sparkles size={28} />
-        </div>
-        <p className="eyebrow">Running research pipeline</p>
-        <h2>Scanning, extracting, and scoring evidence.</h2>
-        <div className="pipeline-list compact-list">
-          {pipelineSteps.map((step) => (
-            <span key={step}><Check size={16} /> {step}</span>
-          ))}
-        </div>
-      </section>
-    );
-  }
-
-  if (!report) {
-    return (
-      <section className="report-surface report-state" aria-label="Market report empty state">
-        <div className="empty-report-icon">
-          <FileSearch size={30} />
-        </div>
-        <p className="eyebrow">No report generated yet</p>
-        <h2>Start with a verifiable public-source snapshot.</h2>
-        <p>
-          The free report now shows the source plan, evidence records, confidence score,
-          supported findings, uncertainty, and the exact pieces that become paid depth.
-        </p>
-        <div className="snapshot-includes">
-          <span>Source plan</span>
-          <span>Evidence ledger</span>
-          <span>Confidence scoring</span>
-          <span>Uncertainty flags</span>
-        </div>
-        <button className="secondary-action" onClick={onGenerate} type="button">
-          Generate sample snapshot
-          <ArrowRight size={16} />
-        </button>
-      </section>
-    );
-  }
-
+function SnapshotReport({ snapshot, isGenerating }) {
   return (
-    <section className="report-surface" aria-label="Market report">
-      <div className="section-heading">
+    <section className={`snapshot-shell ${isGenerating ? 'is-loading' : ''}`} id="snapshot" aria-label="Market snapshot">
+      <div className="report-header">
         <div>
-          <p className="eyebrow">Generated evidence snapshot</p>
-          <h2>{report.topic}</h2>
-          <small className="generated-meta">Generated at {report.generatedAt} for {report.audience}s in {report.geography}</small>
+          <p className="eyebrow">Market snapshot</p>
+          <h2>{snapshot.topic}</h2>
+          <span>{snapshot.segment} · {snapshot.geography} · {snapshot.generatedAt}</span>
         </div>
-        <span className="confidence">{report.scoring.confidenceLabel} confidence</span>
+        <div className="confidence-mark">
+          <strong>{snapshot.confidence}%</strong>
+          <span>{snapshot.confidenceLabel}</span>
+        </div>
       </div>
 
-      <section className="scoreboard" aria-label="Report scoring">
-        <ScoreCard label="Confidence score" value={`${report.scoring.confidenceScore}%`} />
-        <ScoreCard label="Source coverage" value={`${report.scoring.sourceCoverage}%`} />
-        <ScoreCard label="Evidence records" value={report.scoring.evidenceCount} />
-        <ScoreCard label="Paid-depth targets" value={`${report.scoring.unlockCount}+`} />
-      </section>
-
-      <div className="brief-grid">
-        <InsightBlock
-          icon={Globe2}
-          title="Market definition"
-          text={report.marketDefinition}
-        />
-        <InsightBlock
-          icon={BarChart3}
-          title="Demand signal"
-          text={report.demandSignal}
-        />
-        <InsightBlock
-          icon={Layers3}
-          title="Whitespace hypothesis"
-          text={report.whitespace}
-        />
+      <div className="executive-grid">
+        {snapshot.executiveRead.map((item) => (
+          <article key={item.title}>
+            <span>{item.title}</span>
+            <p>{item.text}</p>
+          </article>
+        ))}
       </div>
 
-      <section className="snapshot-summary">
-        <div>
-          <span>Category</span>
-          <strong>{report.category}</strong>
-        </div>
-        <div>
-          <span>Likely buyer</span>
-          <strong>{report.buyer}</strong>
-        </div>
-        <div>
-          <span>Key caution</span>
-          <strong>{report.risk}</strong>
-        </div>
-      </section>
-
-      <section className="source-plan-section">
-        <div className="section-heading compact">
-          <div>
-            <p className="eyebrow">Public-source scan plan</p>
-            <h3>What the engine would verify first</h3>
+      <div className="snapshot-grid">
+        <section className="brief-panel">
+          <div className="section-title">
+            <Target size={18} />
+            <h3>What the snapshot supports</h3>
           </div>
-          <span className="locked-pill"><LockKeyhole size={14} /> More sources in paid report</span>
+          <ul className="clean-list">
+            {snapshot.whatWeKnow.map((item) => <li key={item}>{item}</li>)}
+          </ul>
+        </section>
+
+        <section className="brief-panel">
+          <div className="section-title">
+            <FileSearch size={18} />
+            <h3>What to verify next</h3>
+          </div>
+          <ul className="clean-list">
+            {snapshot.toVerify.map((item) => <li key={item}>{item}</li>)}
+          </ul>
+        </section>
+      </div>
+
+      <section className="competitor-panel">
+        <div className="section-title">
+          <Building2 size={18} />
+          <h3>Competitor starting set</h3>
         </div>
-        <div className="source-plan-grid">
-          {report.sourcePlan.map((item) => (
-            <article className="source-card" key={item.source}>
-              <strong>{item.source}</strong>
-              <p>{item.purpose}</p>
-              <code>{item.query}</code>
-              <small>{item.depth}</small>
-              <a href={item.link} target="_blank" rel="noreferrer">Open source route</a>
+        <div className="competitor-grid">
+          {snapshot.competitors.map((company, index) => (
+            <article key={company}>
+              <span>{String(index + 1).padStart(2, '0')}</span>
+              <strong>{company}</strong>
+              <small>{index < 2 ? 'Direct candidate' : index === 4 ? 'Adjacent candidate' : 'Substitute to test'}</small>
             </article>
           ))}
         </div>
       </section>
 
-      <section className="competitor-section">
-        <div className="section-heading compact">
-          <div>
-            <p className="eyebrow">Competitor landscape</p>
-            <h3>Initial players to verify</h3>
-          </div>
-          <span className="locked-pill"><LockKeyhole size={14} /> Full profiles locked</span>
-        </div>
-        <div className="competitor-table">
-          {report.competitors.map((company, index) => (
-            <div className="competitor-row" key={company}>
-              <span>{String(index + 1).padStart(2, '0')}</span>
-              <strong>{company}</strong>
-              <small>{index < 2 ? 'Direct competitor candidate' : index === 4 ? 'Adjacent player candidate' : 'Substitute or emerging player'}</small>
-              <button type="button">Profile <ChevronRight size={15} /></button>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="evidence-ledger">
-        <div className="section-heading compact">
-          <div>
-            <p className="eyebrow">Evidence ledger</p>
-            <h3>Claims the snapshot is allowed to use</h3>
-          </div>
-          <span className="confidence"><ClipboardCheck size={14} /> Scored claims</span>
+      <section className="evidence-panel" id="evidence">
+        <div className="section-title">
+          <ShieldCheck size={18} />
+          <h3>Evidence ledger</h3>
         </div>
         <div className="evidence-table">
-          {report.evidence.map((item) => (
-            <article className="evidence-row" key={item.id}>
+          {snapshot.evidence.map((item) => (
+            <article key={item.id}>
               <span>{item.id}</span>
               <div>
                 <strong>{item.claim}</strong>
-                <small>{item.reason} Source basis: {item.source}. Checked {item.checkedAt}.</small>
+                <p>{item.basis}</p>
+                <a href={item.route} target="_blank" rel="noreferrer">Open source route <ArrowRight size={13} /></a>
               </div>
-              <b>{item.confidence}</b>
-              <em>{item.sourceType}</em>
+              <b>{item.confidenceLabel}</b>
             </article>
           ))}
         </div>
       </section>
 
-      <section className="method-band">
-        <div>
-          <p className="eyebrow">Scoring method</p>
-          <h3>Confidence is weighted by authority, corroboration, recency, specificity, and contradiction risk.</h3>
-        </div>
-        <div className="adapter-grid">
-          {sourceAdapters.map((adapter) => (
-            <span key={adapter.name}>
-              <Database size={15} />
-              <strong>{adapter.name}</strong>
-              <small>{adapter.type}: {adapter.authority}% authority baseline. {adapter.coverage}</small>
-            </span>
-          ))}
-        </div>
-      </section>
-
-      <section className="warning-band">
-        <AlertTriangle size={20} />
-        <p>
-          Free snapshots should stay directional. A paid report should open every source,
-          capture citations, test contradictions, and show the exact evidence behind each strategic claim.
-        </p>
-      </section>
-
-      <section className="report-upsell">
-        <div>
-          <p className="eyebrow">Next best paid step</p>
-          <h3>Unlock the full public-source scan, competitor profiles, and opportunity score for this topic.</h3>
-        </div>
-        <button className="primary-button" type="button">
-          Choose deep-dive modules
-          <ArrowRight size={18} />
-        </button>
+      <section className="caution-panel">
+        <Gauge size={19} />
+        <p>{snapshot.caution}</p>
       </section>
     </section>
   );
@@ -717,62 +480,12 @@ function ReportSurface({ report, isGenerating, onGenerate }) {
 
 function Select({ label, value, options, onChange }) {
   return (
-    <label className="select-field">
+    <label>
       <span>{label}</span>
       <select value={value} onChange={(event) => onChange(event.target.value)}>
         {options.map((option) => <option key={option}>{option}</option>)}
       </select>
     </label>
-  );
-}
-
-function Metric({ icon: Icon, label, value }) {
-  return (
-    <div className="metric">
-      <Icon size={18} />
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  );
-}
-
-function ScoreCard({ label, value }) {
-  return (
-    <div className="score-card">
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  );
-}
-
-function InsightBlock({ icon: Icon, title, text }) {
-  return (
-    <article className="insight-block">
-      <Icon size={20} />
-      <h3>{title}</h3>
-      <p>{text}</p>
-    </article>
-  );
-}
-
-function Offer({ title, price, text }) {
-  return (
-    <article className="offer-card">
-      <strong>{title}</strong>
-      <span>{price}</span>
-      <p>{text}</p>
-      <button type="button">Request scope <MessageSquareText size={15} /></button>
-    </article>
-  );
-}
-
-function Step({ label, value }) {
-  return (
-    <div className="ladder-step">
-      <span>{label}</span>
-      <strong>{value}</strong>
-      <Check size={16} />
-    </div>
   );
 }
 
