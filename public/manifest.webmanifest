@@ -1,10 +1,13 @@
 {
   "name": "MarketPulse Intelligence Engine",
   "short_name": "MarketPulse",
+  "id": "/",
   "description": "Turn market questions into structured competitor intelligence briefs.",
-  "start_url": "/",
+  "start_url": "/?source=app",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "window-controls-overlay", "browser"],
+  "orientation": "any",
   "background_color": "#F4F7F5",
   "theme_color": "#17766F",
   "icons": [
